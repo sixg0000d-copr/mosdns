@@ -81,7 +81,7 @@ install -m 0644 -vp %{gobuilddir}/mosdns.service %{buildroot}%{_unitdir}/mosdns.
 %post
 %systemd_post mosdns.service
 
-if [ $1 -eq 1 && ! -f "%{_sysconfdir}/mosdns/config.yaml" ]; then
+if [ $1 -eq 1 ] && [ ! -f "%{_sysconfdir}/mosdns/config.yaml" ]; then
     # Package installation, not upgrade
     (%{_bindir}/mosdns -gen "%{_sysconfdir}/mosdns/config.yaml" &>/dev/null) || :
 fi
