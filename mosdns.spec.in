@@ -79,9 +79,15 @@ install -m 0644 -vp %{gobuilddir}/mosdns.service %{buildroot}%{_unitdir}/mosdns.
 
 # Scriptlets >>
 %post
-# gen config
-%{_bindir}/mosdns -gen %{_sysconfdir}/mosdns/config.yaml
 %systemd_post mosdns.service
+
+# gen config
+if [ $1 -eq 1 ]; then
+    # Package installation, not upgrade
+    if (%{_bindir}/mosdns -gen %{_sysconfdir}/mosdns/config.yaml >/dev/null); then
+        echo 'config template generated' || :
+    fi
+fi
 
 %preun
 %systemd_preun mosdns.service
