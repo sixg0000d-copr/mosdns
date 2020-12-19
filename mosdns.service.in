@@ -1,0 +1,11 @@
+[Unit]
+Description=mosdns service
+Documentation=https://github.com/IrineSistiana/mosdns/wiki
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/mosdns -dir @sysconfdir@/mosdns
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
