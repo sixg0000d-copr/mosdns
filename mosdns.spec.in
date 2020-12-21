@@ -22,7 +22,8 @@ URL:             %{gourl}
 # rm -rf @NAME@-@VERSION@
 Source0:         %{gosource}
 Source1:         vendor.tar.gz
-Source2:         mosdns.service.in
+# Custom sources
+Source10:        mosdns.service.in
 
 BuildRequires:   systemd-rpm-macros
 %{?systemd_requires}
@@ -52,7 +53,7 @@ export LDFLAGS="-linkmode=external -X main.version=%{version}-rpmbuild "
 %gobuild -o %{gobuilddir}/bin/mosdns %{goipath}
 unset LDFLAGS
 # systemd
-%{__sed} -e 's|@sysconfdir@|%{_sysconfdir}|g' %{S:2} > %{gobuilddir}/mosdns.service
+%{__sed} -e 's|@sysconfdir@|%{_sysconfdir}|g' %{S:10} > %{gobuilddir}/mosdns.service
 
 
 %install
