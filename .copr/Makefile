@@ -25,13 +25,14 @@ $(outdir):
 	[ -d "$(outdir)" ] || mkdir -p $(outdir)
 
 spec: $(outdir) $(spec).in
-	sed -e "s|@SOURCE_URL@|$(SOURCE_URL)|g" \
-	    -e "s|@NAME@|$(NAME)|g" \
-	    -e "s|@TAG@|$(TAG)|g" \
-	    -e "s|@VERSION@|$(VERSION)|g" \
-	    -e "s|@RELEASE@|$(RELEASE)|g" \
-	    -e "s|@DATE@|$(DATE)|g" \
-	    $(spec).in > $(outdir)/$(NAME).spec
+	sed \
+	-e "s|@SOURCE_URL@|$(SOURCE_URL)|g" \
+	-e "s|@NAME@|$(NAME)|g" \
+	-e "s|@TAG@|$(TAG)|g" \
+	-e "s|@VERSION@|$(VERSION)|g" \
+	-e "s|@RELEASE@|$(RELEASE)|g" \
+	-e "s|@DATE@|$(DATE)|g" \
+	$(spec).in > $(outdir)/$(NAME).spec
 
 sources: $(outdir) init
 	cd $(outdir) && \
@@ -43,15 +44,13 @@ sources: $(outdir) init
 	cd .. && \
 	rm -rf $(NAME)-$(VERSION)
 
-sources_custom: $(outdir)
-	cp $(SCM_ROOT)/$(NAME).service.in $(outdir)
-
-srpm: $(outdir) spec sources sources_custom
-	rpmbuild --define "_sourcedir $(outdir)" \
-	         --define "_srcrpmdir $(outdir)" \
-	         -bs $(outdir)/$(NAME).spec
+srpm: $(outdir) spec sources
+	rpmbuild \
+	--define "_sourcedir $(outdir)" \
+	--define "_srcrpmdir $(outdir)" \
+	-bs $(outdir)/$(NAME).spec
 
 clean:
 	rm -rf $(outdir)
 
-.PHONY: default init spec sources sources_custom srpm clean
+.PHONY: default init spec sources srpm clean

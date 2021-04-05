@@ -22,9 +22,8 @@ URL:             %{gourl}
 # rm -rf @NAME@-@VERSION@
 Source0:         %{gosource}
 Source1:         vendor.tar.gz
-# Custom sources
-Source10:        mosdns.service.in
 
+BuildRequires:   golang >= 1.16
 BuildRequires:   systemd-rpm-macros
 %{?systemd_requires}
 
@@ -48,23 +47,14 @@ fi
 
 
 %build
-# binary
 export LDFLAGS="-linkmode=external -X main.version=%{version}-rpmbuild "
 %gobuild -o %{gobuilddir}/bin/mosdns %{goipath}
-unset LDFLAGS
-# systemd
-%{__sed} -e 's|@sysconfdir@|%{_sysconfdir}|g' %{S:10} > %{gobuilddir}/mosdns.service
 
 
 %install
-# binary
 install -m 0755 -vd                              %{buildroot}%{_bindir}
 install -m 0755 -vp %{gobuilddir}/bin/mosdns     %{buildroot}%{_bindir}/mosdns
-# config dir
 install -m 0755 -vd                              %{buildroot}%{_sysconfdir}/mosdns
-# systemd
-install -m 0755 -vd                              %{buildroot}%{_unitdir}
-install -m 0644 -vp %{gobuilddir}/mosdns.service %{buildroot}%{_unitdir}/mosdns.service
 
 
 %files
@@ -74,21 +64,31 @@ install -m 0644 -vp %{gobuilddir}/mosdns.service %{buildroot}%{_unitdir}/mosdns.
 %{_bindir}/mosdns
 # config dir
 %dir %{_sysconfdir}/mosdns
-# systemd
-%{_unitdir}/mosdns.service
 
 
 # Scriptlets >>
 %post
-%systemd_post mosdns.service
-
 if [ $1 -eq 1 ] && [ -x %{_bindir}/mosdns ]; then
     # Initial installation
-    %{_bindir}/mosdns -gen "%{_sysconfdir}/mosdns/config.yaml" &>/dev/null
+    %{_bindir}/mosdns -gen %{_sysconfdir}/mosdns/config.yaml &>/dev/null || :
+    %{_bindir}/mosdns -dir %{_sysconfdir}/mosdns -s install &>/dev/null || :
 fi
+
+if [ $1 -eq 2 ] && [ ! -f /etc/systemd/system/mosdns.service ]; then
+    # Upgrade from old included service unit file version
+    %{_bindir}/mosdns -dir %{_sysconfdir}/mosdns -s install &>/dev/null || :
+fi
+
+%systemd_post mosdns.service
 
 %preun
 %systemd_preun mosdns.service
+
+if [ $1 -eq 0 ] && [ -x %{_bindir}/mosdns ]; then
+    # Package removal, not upgrade
+    %{_bindir}/mosdns -dir %{_sysconfdir}/mosdns -s uninstall &>/dev/null || :
+fi
+
 
 %postun
 %systemd_postun_with_restart mosdns.service
@@ -98,4 +98,4 @@ fi
 %changelog
 * @DATE@ sixg0000d <sixg0000d@gmail.com> - @VERSION@-@RELEASE@
 - Make package
-- For more changelogs, please see: @SOURCE_URL@/releases/tag/@TAG@
+- For more details, please see: @SOURCE_URL@/releases/tag/@TAG@
