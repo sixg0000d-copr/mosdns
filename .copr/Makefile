@@ -21,7 +21,7 @@ endif
 all: srpm
 
 init:
-	$(pm_install) "@RPM Development Tools" "tar" "git" "sed" "golang >= 1.11"
+	$(pm_install) "@RPM Development Tools" "tar" "git" "sed" "golang >= 1.11" "patch"
 
 $(outdir):
 	[ -d "$(outdir)" ] || mkdir -p $(outdir)
@@ -39,8 +39,10 @@ spec: $(outdir) $(spec).in
 sources: $(outdir) init
 	cd $(outdir) && \
 	curl -L $(SOURCE_URL)/archive/$(TAG)/$(NAME)-$(VERSION).tar.gz -o $(NAME)-$(VERSION).tar.gz && \
+	curl https://patch-diff.githubusercontent.com/raw/IrineSistiana/mosdns/pull/114.patch -o fix-sum.patch && \
 	tar -xzf $(NAME)-$(VERSION).tar.gz && \
 	cd $(NAME)-$(VERSION) && \
+	patch -p 1 -i ../fix-sum.patch && \
 	go mod vendor && \
 	tar -czf ../vendor.tar.gz vendor && \
 	cd .. && \
