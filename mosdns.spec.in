@@ -47,7 +47,7 @@ fi
 
 
 %build
-export LDFLAGS="-linkmode=external -X main.version=%{version}-rpmbuild "
+export LDFLAGS="-linkmode=external -X main.version=%{version}-rpmbuild"
 %gobuild -o %{gobuilddir}/bin/mosdns %{goipath}
 
 
